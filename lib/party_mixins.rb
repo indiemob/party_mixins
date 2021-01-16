@@ -19,6 +19,12 @@ module PartyMixins
       @party_methods ||= {}
     end
 
+    def build_options(method_name, response)
+      {
+        error_message: response.body
+      }.merge(party_methods[method_name])
+    end
+
     private
 
     def method_added(method_name)
@@ -31,22 +37,17 @@ module PartyMixins
     end
 
     def enhance!(method_name)
-      options = build_options(method_name)
+      this = self
       proxy = Module.new do
         define_method(method_name) do |*args|
           response = super(*args)
+          options = this.build_options(method_name, response)
           raise ServiceError.new(response, options[:error_message]) unless response.ok?
 
           response.parsed_response
         end
       end
       prepend proxy
-    end
-
-    def build_options(method_name)
-      {
-        error_message: "Service responded with an error"
-      }.merge(party_methods[method_name])
     end
   end
 end
