@@ -21,7 +21,7 @@ module PartyMixins
 
     def build_options(method_name, response)
       {
-        error_message: response.body
+        error_message: "[#{response.code}] #{response.body}"
       }.merge(party_methods[method_name])
     end
 
@@ -42,7 +42,7 @@ module PartyMixins
         define_method(method_name) do |*args|
           response = super(*args)
           options = this.build_options(method_name, response)
-          raise ServiceError.new(response, options[:error_message]) unless response.ok?
+          raise ServiceError.new(response, options[:error_message]) unless response.success?
 
           response.parsed_response
         end
