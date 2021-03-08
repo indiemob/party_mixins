@@ -42,7 +42,7 @@ module PartyMixins
         define_method(method_name) do |*args|
           response = super(*args)
           options = this.build_options(method_name, response)
-          raise ServiceError.new(response, options[:error_message]) unless response.success?
+          raise ServiceError.new(response, options[:error_message]) unless response.success? || response.ok?
 
           response.parsed_response
         end
