@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'pry'
+
 RSpec.describe PartyMixins do
   it "has a version number" do
     expect(PartyMixins::VERSION).not_to be nil
@@ -72,6 +74,27 @@ RSpec.describe PartyMixins do
         an_instance_of(ServiceError).and(having_attributes(code: 400))
       )
     )
+  end
+
+  it "returns parsed_response when party_method with multiple arg types is present and respose.ok?" do
+    BASE_URI = "https://api.example.com"
+    id = 123
+    foo = 'bar'
+    stub_request(:get, "#{BASE_URI}/posts/#{id}").with(query: { foo: foo }).to_return(mock_response)
+
+    class ExampleClientWithPartyMethodKeywordArg
+      include HTTParty
+      include PartyMixins
+
+      base_uri BASE_URI
+
+      party_method
+      def get_post(id, foo:)
+        self.class.get("/posts/#{id}", query: { foo: foo })
+      end
+    end
+    client = ExampleClientWithPartyMethodKeywordArg.new
+    expect(client.get_post(id, foo: foo)).to be_a(Hash)
   end
 
   def mock_response(status = 200)

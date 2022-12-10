@@ -39,8 +39,8 @@ module PartyMixins
     def enhance!(method_name)
       this = self
       proxy = Module.new do
-        define_method(method_name) do |*args|
-          response = super(*args)
+        define_method(method_name) do |*args, **kwargs|
+          response = super(*args, **kwargs)
           options = this.build_options(method_name, response)
           raise ServiceError.new(response, options[:error_message]) unless response.success? || response.ok?
 
